@@ -19,16 +19,27 @@
         }
 
         * { box-sizing: border-box; font-family: 'Kanit', sans-serif; margin: 0; padding: 0; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 40px 20px; display: flex; justify-content: center; }
+        
+        /* 1. แก้ไขพื้นหลังไก่ทอดแบบฝังในโค้ด (ทำงานได้ 100% ไม่ต้องใช้รูปภาพภายนอก) */
+        body { 
+            background-color: var(--bg-color); 
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-size='35' fill-opacity='0.2' text-anchor='middle' dominant-baseline='middle'%3E🍗%3C/text%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-attachment: fixed;
+            color: var(--text-main); 
+            padding: 40px 20px; 
+            display: flex; 
+            justify-content: center; 
+        }
         
         .survey-container {
             background-color: var(--card-bg);
             max-width: 800px; width: 100%;
             border-radius: 24px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08); /* ปรับเงาให้ฟุ้งและดูมีมิติขึ้น */
             padding: 50px 40px; position: relative;
         }
-        .survey-container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: var(--primary-gradient); }
+        .survey-container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: var(--primary-gradient); border-top-left-radius: 24px; border-top-right-radius: 24px;}
         .header-banner { width: 100%; height: 150px; border-radius: 16px; object-fit: cover; margin-bottom: 20px; }
         .header { text-align: center; margin-bottom: 40px; }
         .header h1 { color: var(--primary-color); font-size: 2.2rem; margin-bottom: 10px; }
@@ -38,7 +49,6 @@
         .question-group { margin-bottom: 30px; }
         .question-label { display: block; font-size: 1.15rem; font-weight: 500; margin-bottom: 15px; color: #34495e; }
         
-        /* ตารางจัดวางตัวเลือกแบบการ์ด */
         .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
         .radio-btn input[type="radio"] { display: none; }
         .radio-btn span {
@@ -60,10 +70,40 @@
         .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(228, 0, 43, 0.4); }
         .submit-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
         
+        /* ========================================= */
+        /* 2. CSS สำหรับ Popup สวยๆ (Modal)             */
+        /* ========================================= */
+        .popup-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); /* พื้นหลังเบลอ */
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; visibility: hidden; opacity: 0; transition: all 0.3s ease;
+        }
+        .popup-overlay.show { visibility: visible; opacity: 1; }
+        .popup-content {
+            background: #fff; padding: 40px; border-radius: 24px; text-align: center;
+            max-width: 400px; width: 90%; 
+            transform: scale(0.8) translateY(20px); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+        .popup-overlay.show .popup-content { transform: scale(1) translateY(0); }
+        .popup-icon { font-size: 70px; margin-bottom: 15px; animation: bounce 1s infinite alternate; }
+        .popup-content h2 { color: var(--primary-color); margin-bottom: 10px; font-size: 1.8rem; }
+        .popup-content p { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 25px; }
+        .popup-close-btn {
+            background: var(--primary-gradient); color: white; border: none; padding: 12px 30px;
+            border-radius: 12px; font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: 0.3s;
+        }
+        .popup-close-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(228, 0, 43, 0.3); }
+
+        @keyframes bounce { from { transform: translateY(0px); } to { transform: translateY(-10px); } }
+        /* ========================================= */
+
         @media (max-width: 600px) {
             .survey-container { padding: 30px 20px; }
             .header h1 { font-size: 1.8rem; }
             .question-label { font-size: 1.05rem; }
+            .popup-content { padding: 30px 20px; }
         }
     </style>
 </head>
@@ -279,26 +319,42 @@
         </form>
     </div>
 
+    <div class="popup-overlay" id="successPopup">
+        <div class="popup-content">
+            <div class="popup-icon">🎉</div>
+            <h2>ส่งคำตอบเรียบร้อยแล้ว</h2>
+            <p>ขอบคุณที่ร่วมทำแบบสอบถามครับ!</p>
+            <button class="popup-close-btn" onclick="closePopup()">กลับสู่หน้าหลัก</button>
+        </div>
+    </div>
+
     <script>
         // *** วาง URL ของเว็บแอป (Web App URL) ที่ได้จาก Google Apps Script ตรงนี้ ***
         const scriptURL = 'https://script.google.com/macros/s/AKfycbx4yRnpDDS7IwRRIJ7rh_rvDyAxf9RUrwkydalmXcvoFEISSFBiYXJwlJPRYuFGDIl8/exec';
+        
         const form = document.getElementById('surveyForm');
         const submitBtn = document.getElementById('submitBtn');
+        const popup = document.getElementById('successPopup');
+
+        // ฟังก์ชันปิด Popup
+        function closePopup() {
+            popup.classList.remove('show');
+        }
 
         form.addEventListener('submit', e => {
-            e.preventDefault(); // ป้องกันการเปลี่ยนหน้า
+            e.preventDefault(); 
             
-            // เปลี่ยนข้อความปุ่มและป้องกันการกดซ้ำ
             submitBtn.disabled = true;
             submitBtn.innerText = 'กำลังส่งข้อมูล... ⏳';
 
-            // ใช้ FormData เก็บข้อมูลจากฟอร์มทั้งหมด 
             let requestBody = new FormData(form);
 
             fetch(scriptURL, { method: 'POST', body: requestBody })
                 .then(response => {
-                    alert('ส่งคำตอบเรียบร้อยแล้ว ขอบคุณที่ร่วมสนุกครับ! 🎉');
-                    form.reset(); // ล้างฟอร์ม
+                    // เรียกแสดง Popup สวยๆ แทนการใช้ alert()
+                    popup.classList.add('show');
+                    
+                    form.reset(); 
                     submitBtn.disabled = false;
                     submitBtn.innerText = 'ส่งคำตอบของคุณ ❤️';
                 })
