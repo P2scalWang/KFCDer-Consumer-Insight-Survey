@@ -20,7 +20,6 @@
 
         * { box-sizing: border-box; font-family: 'Kanit', sans-serif; margin: 0; padding: 0; }
         
-        /* 1. แก้ไขพื้นหลังไก่ทอดแบบฝังในโค้ด (ทำงานได้ 100% ไม่ต้องใช้รูปภาพภายนอก) */
         body { 
             background-color: var(--bg-color); 
             background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-size='35' fill-opacity='0.2' text-anchor='middle' dominant-baseline='middle'%3E🍗%3C/text%3E%3C/svg%3E");
@@ -36,7 +35,7 @@
             background-color: var(--card-bg);
             max-width: 800px; width: 100%;
             border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08); /* ปรับเงาให้ฟุ้งและดูมีมิติขึ้น */
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
             padding: 50px 40px; position: relative;
         }
         .survey-container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: var(--primary-gradient); border-top-left-radius: 24px; border-top-right-radius: 24px;}
@@ -70,12 +69,10 @@
         .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(228, 0, 43, 0.4); }
         .submit-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
         
-        /* ========================================= */
-        /* 2. CSS สำหรับ Popup สวยๆ (Modal)             */
-        /* ========================================= */
+        /* Popup Modal */
         .popup-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); /* พื้นหลังเบลอ */
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px);
             display: flex; justify-content: center; align-items: center;
             z-index: 1000; visibility: hidden; opacity: 0; transition: all 0.3s ease;
         }
@@ -97,7 +94,6 @@
         .popup-close-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(228, 0, 43, 0.3); }
 
         @keyframes bounce { from { transform: translateY(0px); } to { transform: translateY(-10px); } }
-        /* ========================================= */
 
         @media (max-width: 600px) {
             .survey-container { padding: 30px 20px; }
@@ -224,7 +220,8 @@
                     <div class="options-grid">
                         <label class="radio-btn"><input type="radio" name="cb_who" value="คนเดียว"><span><div class="option-text">คนเดียว</div></span></label>
                         <label class="radio-btn"><input type="radio" name="cb_who" value="เพื่อน"><span><div class="option-text">เพื่อน</div></span></label>
-                        <label class="radio-btn"><input type="radio" name="cb_who" value="แฟน / แฟน(เก่า)"><span><div class="option-text">แฟน / แฟน(เก่า)</div></span></label>
+                        <label class="radio-btn"><input type="radio" name="cb_who" value="แฟน"><span><div class="option-text">แฟน</div></span></label>
+                        <label class="radio-btn"><input type="radio" name="cb_who" value="แฟนเก่า"><span><div class="option-text">แฟนเก่า</div></span></label>
                         <label class="radio-btn"><input type="radio" name="cb_who" value="ครอบครัว"><span><div class="option-text">ครอบครัว</div></span></label>
                     </div>
                 </div>
@@ -313,6 +310,18 @@
                         <label class="radio-btn"><input type="radio" name="cb11" value="ไม่ค่อยชอบอาหารจานด่วน"><span><div class="option-text">ไม่ค่อยชอบอาหารจานด่วน</div></span></label>
                     </div>
                 </div>
+                
+                <div class="question-group">
+                    <label class="question-label">12. ปกติเวลามาทาน KFC ทานไก่กี่ชิ้นถึงอิ่ม?</label>
+                    <div class="options-grid">
+                        <label class="radio-btn"><input type="radio" name="cb12" value="1 ชิ้น"><span><div class="option-text">1 ชิ้น</div></span></label>
+                        <label class="radio-btn"><input type="radio" name="cb12" value="2 ชิ้น"><span><div class="option-text">2 ชิ้น</div></span></label>
+                        <label class="radio-btn"><input type="radio" name="cb12" value="3 ชิ้น"><span><div class="option-text">3 ชิ้น</div></span></label>
+                        <label class="radio-btn"><input type="radio" name="cb12" value="4 ชิ้น"><span><div class="option-text">4 ชิ้น</div></span></label>
+                        <label class="radio-btn"><input type="radio" name="cb12" value="5 ชิ้น หรือ มากกว่า"><span><div class="option-text">5 ชิ้น หรือ มากกว่า</div></span></label>
+                    </div>
+                </div>
+
             </fieldset>
 
             <button type="submit" id="submitBtn" class="submit-btn">ส่งคำตอบของคุณ ❤️</button>
@@ -329,16 +338,15 @@
     </div>
 
     <script>
-        // *** วาง URL ของเว็บแอป (Web App URL) ที่ได้จาก Google Apps Script ตรงนี้ ***
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbx4yRnpDDS7IwRRIJ7rh_rvDyAxf9RUrwkydalmXcvoFEISSFBiYXJwlJPRYuFGDIl8/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwbwq0k_WwEPXVNHHXg2uSi0c7bGfcA-hke5Bc6j4CYkQjZ9gTVnVqnEGQPU_jW-sEdSg/exec';
         
         const form = document.getElementById('surveyForm');
         const submitBtn = document.getElementById('submitBtn');
         const popup = document.getElementById('successPopup');
 
-        // ฟังก์ชันปิด Popup
         function closePopup() {
             popup.classList.remove('show');
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // เลื่อนกลับไปด้านบนสุด
         }
 
         form.addEventListener('submit', e => {
@@ -351,7 +359,6 @@
 
             fetch(scriptURL, { method: 'POST', body: requestBody })
                 .then(response => {
-                    // เรียกแสดง Popup สวยๆ แทนการใช้ alert()
                     popup.classList.add('show');
                     
                     form.reset(); 
