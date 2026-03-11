@@ -22,6 +22,7 @@
         
         body { 
             background-color: var(--bg-color); 
+            /* พื้นหลังอิโมจิไก่ทอด 🍗 */
             background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-size='35' fill-opacity='0.2' text-anchor='middle' dominant-baseline='middle'%3E🍗%3C/text%3E%3C/svg%3E");
             background-repeat: repeat;
             background-attachment: fixed;
@@ -310,7 +311,6 @@
                         <label class="radio-btn"><input type="radio" name="cb11" value="ไม่ค่อยชอบอาหารจานด่วน"><span><div class="option-text">ไม่ค่อยชอบอาหารจานด่วน</div></span></label>
                     </div>
                 </div>
-                
                 <div class="question-group">
                     <label class="question-label">12. ปกติเวลามาทาน KFC ทานไก่กี่ชิ้นถึงอิ่ม?</label>
                     <div class="options-grid">
@@ -318,10 +318,9 @@
                         <label class="radio-btn"><input type="radio" name="cb12" value="2 ชิ้น"><span><div class="option-text">2 ชิ้น</div></span></label>
                         <label class="radio-btn"><input type="radio" name="cb12" value="3 ชิ้น"><span><div class="option-text">3 ชิ้น</div></span></label>
                         <label class="radio-btn"><input type="radio" name="cb12" value="4 ชิ้น"><span><div class="option-text">4 ชิ้น</div></span></label>
-                        <label class="radio-btn"><input type="radio" name="cb12" value="5 ชิ้น หรือ มากกว่า"><span><div class="option-text">5 ชิ้น หรือ มากกว่า</div></span></label>
+                        <label class="radio-btn"><input type="radio" name="cb12" value="5 ชิ้น หรือ มากกว่า"><span><div class="option-text">5 ชิ้น หรือ<br>มากกว่า</div></span></label>
                     </div>
                 </div>
-
             </fieldset>
 
             <button type="submit" id="submitBtn" class="submit-btn">ส่งคำตอบของคุณ ❤️</button>
@@ -338,7 +337,8 @@
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbwl1Zn53vgKpd4wwSpVjeAu4kAtqv0P3d7dCbh7oH7GK1sa25CoJR98f2quJ-JKFXakUw/exec';
+        // *** วาง URL ของ Webhook ที่นี่ ***
+        const webhookURL = 'https://n8n.srv1038568.hstgr.cloud/webhook/4ade934a-b03e-47cb-a059-a002ee2e1185'; 
         
         const form = document.getElementById('surveyForm');
         const submitBtn = document.getElementById('submitBtn');
@@ -346,7 +346,7 @@
 
         function closePopup() {
             popup.classList.remove('show');
-            window.scrollTo({ top: 0, behavior: 'smooth' }); // เลื่อนกลับไปด้านบนสุด
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
         }
 
         form.addEventListener('submit', e => {
@@ -355,22 +355,47 @@
             submitBtn.disabled = true;
             submitBtn.innerText = 'กำลังส่งข้อมูล... ⏳';
 
-            let requestBody = new FormData(form);
+            // ดึงข้อมูลจากฟอร์ม
+            let formData = new FormData(form);
+            
+            // แปลงเป็น JSON Object
+            let jsonData = {};
+            
+            // ใส่เวลาเข้าไปด้วยเลย เพื่อให้ฝั่ง n8n/Make มี Timestamp ให้ใช้
+            jsonData["Timestamp"] = new Date().toISOString();
 
-            fetch(scriptURL, { method: 'POST', body: requestBody })
-                .then(response => {
+            formData.forEach((value, key) => {
+                jsonData[key] = value;
+            });
+
+            // ยิงข้อมูลไปที่ Webhook แบบ JSON
+            fetch(webhookURL, { 
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(jsonData) 
+            })
+            .then(response => {
+                // สมมติว่า Webhook รับสำเร็จ
+                if (response.ok || response.status === 200) {
                     popup.classList.add('show');
-                    
                     form.reset(); 
                     submitBtn.disabled = false;
                     submitBtn.innerText = 'ส่งคำตอบของคุณ ❤️';
-                })
-                .catch(error => {
-                    console.error('Error!', error.message);
-                    alert('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = 'ส่งคำตอบของคุณ ❤️';
-                });
+                } else {
+                    throw new Error('Webhook error');
+                }
+            })
+            .catch(error => {
+                console.error('Error!', error);
+                // บาง Webhook อาจจะมีปัญหา CORS (Cross-Origin) ถ้ายิงจาก Browser ตรงๆ
+                // ถ้าเด้ง Error แต่ข้อมูลเข้า Webhook แสดงว่าเป็นที่ CORS ครับ
+                alert('เกิดข้อผิดพลาดในการส่งข้อมูลไปที่ Webhook กรุณาลองใหม่อีกครั้ง');
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'ส่งคำตอบของคุณ ❤️';
+            });
         });
     </script>
 </body>
